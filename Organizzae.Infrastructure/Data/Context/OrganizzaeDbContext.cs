@@ -33,7 +33,10 @@ namespace Organizzae.Infrastructure.Data.Context
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-
+            // Melhorias => adicionar lógica antes de salvar, como:
+            // - Atualizar DataAtualizacao automaticamente
+            // - Validações adicionais caso precise
+            // - Auditoria futuro
 
             var entries = ChangeTracker.Entries()
                 .Where(e => e.State == EntityState.Modified);
