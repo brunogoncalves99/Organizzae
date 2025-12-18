@@ -94,21 +94,22 @@ public class ReceitaRepository : RepositoryBase<Receita>, IReceitaRepository
 
     public async Task<Dinheiro> CalcularTotalPorPeriodoAsync(Guid usuarioId, DateTime dataInicio, DateTime dataFim)
     {
-        var total = await _dbSet
+        var receitas = await _dbSet
             .Where(r => r.UsuarioId == usuarioId
                      && r.Status == StatusReceita.Recebida
                      && r.DataRecebimento.HasValue
                      && r.DataRecebimento.Value.Date >= dataInicio.Date
                      && r.DataRecebimento.Value.Date <= dataFim.Date
                      && r.Ativo)
-            .SumAsync(r => r.Valor.Valor);
+            .ToListAsync();
 
+        var total = receitas.Sum(r => r.Valor.Valor);
         return new Dinheiro(total);
     }
 
     public async Task<Dinheiro> CalcularTotalPorCategoriaAsync(Guid usuarioId, Guid categoriaId, DateTime dataInicio, DateTime dataFim)
     {
-        var total = await _dbSet
+        var receitas = await _dbSet
             .Where(r => r.UsuarioId == usuarioId
                      && r.CategoriaId == categoriaId
                      && r.Status == StatusReceita.Recebida
@@ -116,14 +117,15 @@ public class ReceitaRepository : RepositoryBase<Receita>, IReceitaRepository
                      && r.DataRecebimento.Value.Date >= dataInicio.Date
                      && r.DataRecebimento.Value.Date <= dataFim.Date
                      && r.Ativo)
-            .SumAsync(r => r.Valor.Valor);
+            .ToListAsync();
 
+        var total = receitas.Sum(r => r.Valor.Valor);
         return new Dinheiro(total);
     }
 
     public async Task<Dictionary<string, decimal>> ObterReceitasPorCategoriaAsync(Guid usuarioId, DateTime dataInicio, DateTime dataFim)
     {
-        return await _dbSet
+        var receitas = await _dbSet
             .Include(r => r.Categoria)
             .Where(r => r.UsuarioId == usuarioId
                      && r.Status == StatusReceita.Recebida
@@ -131,8 +133,10 @@ public class ReceitaRepository : RepositoryBase<Receita>, IReceitaRepository
                      && r.DataRecebimento.Value.Date >= dataInicio.Date
                      && r.DataRecebimento.Value.Date <= dataFim.Date
                      && r.Ativo)
+            .ToListAsync();
+
+        return receitas
             .GroupBy(r => r.Categoria.Nome)
-            .Select(g => new { Categoria = g.Key, Total = g.Sum(r => r.Valor.Valor) })
-            .ToDictionaryAsync(x => x.Categoria, x => x.Total);
+            .ToDictionary(g => g.Key, g => g.Sum(r => r.Valor.Valor));
     }
 }

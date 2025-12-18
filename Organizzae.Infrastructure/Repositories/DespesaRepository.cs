@@ -94,21 +94,22 @@ namespace Organizzae.Infrastructure.Repositories
 
         public async Task<Dinheiro> CalcularTotalPorPeriodoAsync(Guid usuarioId, DateTime dataInicio, DateTime dataFim)
         {
-            var total = await _dbSet
+            var despesas = await _dbSet
                 .Where(d => d.UsuarioId == usuarioId
                          && d.Status == StatusDespesa.Paga
                          && d.DataPagamento.HasValue
                          && d.DataPagamento.Value.Date >= dataInicio.Date
                          && d.DataPagamento.Value.Date <= dataFim.Date
                          && d.Ativo)
-                .SumAsync(d => d.Valor.Valor);
+                .ToListAsync();
 
+            var total = despesas.Sum(d => d.Valor.Valor);
             return new Dinheiro(total);
         }
 
         public async Task<Dinheiro> CalcularTotalPorCategoriaAsync(Guid usuarioId, Guid categoriaId, DateTime dataInicio, DateTime dataFim)
         {
-            var total = await _dbSet
+            var despesas = await _dbSet
                 .Where(d => d.UsuarioId == usuarioId
                          && d.CategoriaId == categoriaId
                          && d.Status == StatusDespesa.Paga
@@ -116,14 +117,15 @@ namespace Organizzae.Infrastructure.Repositories
                          && d.DataPagamento.Value.Date >= dataInicio.Date
                          && d.DataPagamento.Value.Date <= dataFim.Date
                          && d.Ativo)
-                .SumAsync(d => d.Valor.Valor);
+                .ToListAsync();
 
+            var total = despesas.Sum(d => d.Valor.Valor);
             return new Dinheiro(total);
         }
 
         public async Task<Dictionary<string, decimal>> ObterDespesasPorCategoriaAsync(Guid usuarioId, DateTime dataInicio, DateTime dataFim)
         {
-            return await _dbSet
+            var despesas = await _dbSet
                 .Include(d => d.Categoria)
                 .Where(d => d.UsuarioId == usuarioId
                          && d.Status == StatusDespesa.Paga
@@ -131,14 +133,16 @@ namespace Organizzae.Infrastructure.Repositories
                          && d.DataPagamento.Value.Date >= dataInicio.Date
                          && d.DataPagamento.Value.Date <= dataFim.Date
                          && d.Ativo)
+                .ToListAsync();
+
+            return despesas
                 .GroupBy(d => d.Categoria.Nome)
-                .Select(g => new { Categoria = g.Key, Total = g.Sum(d => d.Valor.Valor) })
-                .ToDictionaryAsync(x => x.Categoria, x => x.Total);
+                .ToDictionary(g => g.Key, g => g.Sum(d => d.Valor.Valor));
         }
 
         public async Task<IEnumerable<Despesa>> ObterMaioresGastosAsync(Guid usuarioId, DateTime dataInicio, DateTime dataFim, int quantidade)
         {
-            return await _dbSet
+            var despesas = await _dbSet
                 .Include(d => d.Categoria)
                 .Where(d => d.UsuarioId == usuarioId
                          && d.Status == StatusDespesa.Paga
@@ -146,9 +150,11 @@ namespace Organizzae.Infrastructure.Repositories
                          && d.DataPagamento.Value.Date >= dataInicio.Date
                          && d.DataPagamento.Value.Date <= dataFim.Date
                          && d.Ativo)
-                .OrderByDescending(d => d.Valor.Valor)
-                .Take(quantidade)
                 .ToListAsync();
+
+            return despesas
+                .OrderByDescending(d => d.Valor.Valor)
+                .Take(quantidade);
         }
     }
 }
