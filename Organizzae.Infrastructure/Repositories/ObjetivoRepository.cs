@@ -57,10 +57,9 @@ namespace Organizzae.Infrastructure.Repositories
                 .Where(o => o.UsuarioId == usuarioId
                          && o.Status == StatusObjetivo.EmAndamento
                          && o.Ativo)
-                .AsEnumerable() // Traz para memória para calcular percentual
                 .Where(o => o.CalcularPercentualProgresso() >= percentualMinimo)
                 .OrderByDescending(o => o.CalcularPercentualProgresso())
-                .ToList();
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<Objetivo>> ObterComPrazoProximoAsync(Guid usuarioId, int proximosDias)
