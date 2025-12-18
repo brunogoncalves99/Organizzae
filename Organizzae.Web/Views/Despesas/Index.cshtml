@@ -1,0 +1,186 @@
+﻿@model List<DespesaDto>
+@{
+    ViewData["Title"] = "Despesas";
+}
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2 class="fw-bold"><i class="fas fa-arrow-down me-2"></i>Minhas Despesas</h2>
+    </div>
+    <div class="col-md-6 text-end">
+        <a asp-action="Criar" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Nova Despesa
+        </a>
+    </div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Descrição</th>
+                            <th>Categoria</th>
+                            <th>Valor</th>
+                            <th>Vencimento</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var despesa in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@despesa.Descricao</strong>
+                                    @if (!string.IsNullOrWhiteSpace(despesa.Observacoes))
+                                    {
+                                        <br>
+                            
+                                        <small class="text-muted">@despesa.Observacoes</small>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge" style="background-color: @despesa.CategoriaCor">
+                                        @if (!string.IsNullOrWhiteSpace(despesa.CategoriaIcone))
+                                        {
+                                            <i class="@despesa.CategoriaIcone me-1"></i>
+                                        }
+                                        @despesa.CategoriaNome
+                                    </span>
+                                </td>
+                                <td><strong class="text-danger">@despesa.ValorFormatado</strong></td>
+                                <td>
+                                    @despesa.DataVencimento.ToString("dd/MM/yyyy")
+                                    @if (despesa.EstaVencida)
+                                    {
+                                        <br>
+                            
+                                        <small class="text-danger"><i class="fas fa-exclamation-triangle"></i> Vencida</small>
+                                    }
+                                    else if (despesa.DiasParaVencimento <= 3 && despesa.DiasParaVencimento >= 0)
+                                    {
+                                        <br>
+                            
+                                        <small class="text-warning"><i class="fas fa-clock"></i> @despesa.DiasParaVencimento dia(s)</small>
+                                    }
+                                </td>
+                                <td>
+                                    @switch (despesa.Status)
+                                    {
+                                        case "Pendente":
+                                            <span class="badge bg-warning text-dark">Pendente</span>
+                                            break;
+                                        case "Paga":
+                                            <span class="badge bg-success">Paga</span>
+                                            break;
+                                        case "Atrasada":
+                                            <span class="badge bg-danger">Atrasada</span>
+                                            break;
+                                        case "Cancelada":
+                                            <span class="badge bg-secondary">Cancelada</span>
+                                            break;
+                                    }
+                                    @if (despesa.DataPagamento.HasValue)
+                                    {
+                                        <br>
+                            
+                                        <small class="text-muted">@despesa.DataPagamento.Value.ToString("dd/MM/yyyy")</small>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        @if (despesa.Status == "Pendente" || despesa.Status == "Atrasada")
+                                        {
+                                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalPagamento"
+                                                    onclick="prepararPagamento('@despesa.Id', '@despesa.Descricao')">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <a asp-action="Editar" asp-route-id="@despesa.Id" class="btn btn-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        }
+                                        <button type="button" class="btn btn-danger" onclick="confirmarExclusao('@despesa.Id', '@despesa.Descricao')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        Nenhuma despesa cadastrada. <a asp-action="Criar">Clique aqui para adicionar sua primeira despesa</a>.
+    </div>
+}
+
+<div class="modal fade" id="modalPagamento" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="RegistrarPagamento" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Registrar Pagamento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="DespesaId" name="DespesaId" />
+
+                    <p><strong>Despesa:</strong> <span id="despesaDescricao"></span></p>
+
+                    <div class="mb-3">
+                        <label for="DataPagamento" class="form-label">Data do Pagamento</label>
+                        <input type="date" class="form-control" id="DataPagamento" name="DataPagamento" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="FormaPagamento" class="form-label">Forma de Pagamento</label>
+                        <select class="form-select" id="FormaPagamento" name="FormaPagamento" required>
+                            <option value="">Selecione...</option>
+                            <option value="Dinheiro">Dinheiro</option>
+                            <option value="Pix">PIX</option>
+                            <option value="CartaoDebito">Cartão de Débito</option>
+                            <option value="CartaoCredito">Cartão de Crédito</option>
+                            <option value="TransferenciaBancaria">Transferência Bancária</option>
+                            <option value="Boleto">Boleto</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Confirmar Pagamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<form id="formExcluir" asp-action="Excluir" method="post" style="display: none;">
+    <input type="hidden" id="excluirId" name="id" />
+</form>
+
+@section Scripts {
+    <script>
+        function prepararPagamento(id, descricao) {
+            document.getElementById('DespesaId').value = id;
+            document.getElementById('despesaDescricao').textContent = descricao;
+            document.getElementById('DataPagamento').value = new Date().toISOString().split('T')[0];
+        }
+
+        function confirmarExclusao(id, descricao) {
+            if (confirm(`Tem certeza que deseja excluir a despesa "${descricao}"?`)) {
+                document.getElementById('excluirId').value = id;
+                document.getElementById('formExcluir').submit();
+            }
+        }
+    </script>
+}

@@ -1,0 +1,115 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model CriarDespesaDto
+@{
+    ViewData["Title"] = "Nova Despesa";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold"><i class="fas fa-plus-circle me-2"></i>Nova Despesa</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Despesas</a></li>
+                <li class="breadcrumb-item active">Nova Despesa</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form asp-action="Criar" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Descricao" class="form-label">Descrição</label>
+                        <input asp-for="Descricao" class="form-control" placeholder="Ex: Conta de luz" />
+                        <span asp-validation-for="Descricao" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Valor" class="form-label">Valor</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input asp-for="Valor" class="form-control" placeholder="0,00" />
+                            </div>
+                            <span asp-validation-for="Valor" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="DataVencimento" class="form-label">Data de Vencimento</label>
+                            <input asp-for="DataVencimento" type="date" class="form-control" />
+                            <span asp-validation-for="DataVencimento" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="CategoriaId" class="form-label">Categoria</label>
+                            <select asp-for="CategoriaId" class="form-select" asp-items="ViewBag.Categorias">
+                                <option value="">Selecione uma categoria</option>
+                            </select>
+                            <span asp-validation-for="CategoriaId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="TipoRecorrencia" class="form-label">Recorrência</label>
+                            <select asp-for="TipoRecorrencia" class="form-select">
+                                <option value="Nenhuma">Não recorrente</option>
+                                <option value="Semanal">Semanal</option>
+                                <option value="Quinzenal">Quinzenal</option>
+                                <option value="Mensal">Mensal</option>
+                                <option value="Anual">Anual</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Observacoes" class="form-label">Observações (opcional)</label>
+                        <textarea asp-for="Observacoes" class="form-control" rows="3" placeholder="Informações adicionais sobre esta despesa"></textarea>
+                        <span asp-validation-for="Observacoes" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Salvar Despesa
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-info-circle me-2"></i>Dicas</h5>
+                <ul class="mb-0">
+                    <li class="mb-2">Use descrições claras para facilitar a identificação</li>
+                    <li class="mb-2">Categorize corretamente para melhor análise</li>
+                    <li class="mb-2">Marque como recorrente se for uma despesa fixa</li>
+                    <li>Adicione observações para detalhes importantes</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#Valor').mask('#.##0,00', { reverse: true });
+        });
+    </script>
+}

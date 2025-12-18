@@ -1,0 +1,267 @@
+﻿@model ResumoFinanceiroDto
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold"><i class="fas fa-chart-line me-2"></i>Dashboard Financeiro</h2>
+        <p class="text-muted">Período: @Model.PeriodoInicio.ToString("dd/MM/yyyy") a @Model.PeriodoFim.ToString("dd/MM/yyyy")</p>
+    </div>
+</div>
+
+<!-- Cards de Resumo -->
+<div class="row g-3 mb-4">
+    <!-- Total Receitas -->
+    <div class="col-md-4">
+        <div class="card border-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-success">Receitas</h6>
+                        <h3 class="card-title mb-0 text-success">@Model.TotalReceitasFormatado</h3>
+                        @if (Model.PercentualVariacaoReceitas != 0)
+                        {
+                            <small class="@(Model.PercentualVariacaoReceitas > 0 ? "text-success" : "text-danger")">
+                                <i class="fas fa-arrow-@(Model.PercentualVariacaoReceitas > 0 ? "up" : "down")"></i>
+                                @Math.Abs(Model.PercentualVariacaoReceitas)% vs mês anterior
+                            </small>
+                        }
+                    </div>
+                    <div class="bg-success bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-arrow-up fa-2x text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Despesas -->
+    <div class="col-md-4">
+        <div class="card border-danger">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-danger">Despesas</h6>
+                        <h3 class="card-title mb-0 text-danger">@Model.TotalDespesasFormatado</h3>
+                        @if (Model.PercentualVariacaoDespesas != 0)
+                        {
+                            <small class="@(Model.PercentualVariacaoDespesas > 0 ? "text-danger" : "text-success")">
+                                <i class="fas fa-arrow-@(Model.PercentualVariacaoDespesas > 0 ? "up" : "down")"></i>
+                                @Math.Abs(Model.PercentualVariacaoDespesas)% vs mês anterior
+                            </small>
+                        }
+                    </div>
+                    <div class="bg-danger bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-arrow-down fa-2x text-danger"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Saldo -->
+    <div class="col-md-4">
+        <div class="card border-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-primary">Saldo</h6>
+                        <h3 class="card-title mb-0 @(Model.Saldo >= 0 ? "text-primary" : "text-danger")">
+                            @Model.SaldoFormatado
+                        </h3>
+                        <small class="text-muted">Receitas - Despesas</small>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-wallet fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alertas e Informações -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="alert alert-warning d-flex align-items-center mb-0">
+            <i class="fas fa-clock fa-2x me-3"></i>
+            <div>
+                <strong>@Model.DespesasPendentes</strong><br>
+                <small>Despesas Pendentes</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="alert alert-danger d-flex align-items-center mb-0">
+            <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+            <div>
+                <strong>@Model.DespesasAtrasadas</strong><br>
+                <small>Despesas Atrasadas</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="alert alert-info d-flex align-items-center mb-0">
+            <i class="fas fa-hourglass-half fa-2x me-3"></i>
+            <div>
+                <strong>@Model.ReceitasPendentes</strong><br>
+                <small>Receitas Pendentes</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos -->
+<div class="row g-3 mb-4">
+    <!-- Despesas por Categoria -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Despesas por Categoria</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chartDespesasCategoria"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receitas por Categoria -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Receitas por Categoria</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="chartReceitasCategoria"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabelas -->
+<div class="row g-3">
+    <!-- Maiores Gastos -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-list-ol me-2"></i>Maiores Gastos</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.MaioresGastos.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var gasto in Model.MaioresGastos)
+                        {
+                            <div class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@gasto.Descricao</strong><br>
+                                        <small class="text-muted">
+                                            <span class="badge" style="background-color: @gasto.CategoriaCor">@gasto.CategoriaNome</span>
+                                        </small>
+                                    </div>
+                                    <h5 class="mb-0 text-danger">@gasto.ValorFormatado</h5>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Nenhuma despesa registrada</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Próximos Vencimentos -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Próximos Vencimentos (7 dias)</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.ProximosVencimentos.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var vencimento in Model.ProximosVencimentos)
+                        {
+                            <div class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@vencimento.Descricao</strong><br>
+                                        <small class="text-muted">
+                                            <i class="far fa-calendar"></i> @vencimento.DataVencimento.ToString("dd/MM/yyyy")
+                                        </small>
+                                    </div>
+                                    <h5 class="mb-0 text-warning">@vencimento.ValorFormatado</h5>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Nenhum vencimento próximo</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        @if (Model.DespesasPorCategoria.Any())
+        {
+                <text>
+                const ctxDespesas = document.getElementById('chartDespesasCategoria').getContext('2d');
+                new Chart(ctxDespesas, {
+                    type: 'pie',
+                    data: {
+                        labels: [@Html.Raw(string.Join(",", Model.DespesasPorCategoria.Keys.Select(k => $"'{k}'")))],
+                        datasets: [{
+                            data: [@string.Join(",", Model.DespesasPorCategoria.Values)],
+                            backgroundColor: [
+                                '#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#A8E6CF',
+                                '#C7CEEA', '#FFDAC1', '#B4A7D6', '#6C757D'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+                </text>
+        }
+
+        @if (Model.ReceitasPorCategoria.Any())
+        {
+                <text>
+                const ctxReceitas = document.getElementById('chartReceitasCategoria').getContext('2d');
+                new Chart(ctxReceitas, {
+                    type: 'pie',
+                    data: {
+                        labels: [@Html.Raw(string.Join(",", Model.ReceitasPorCategoria.Keys.Select(k => $"'{k}'")))],
+                        datasets: [{
+                            data: [@string.Join(",", Model.ReceitasPorCategoria.Values)],
+                            backgroundColor: [
+                                '#51CF66', '#339AF0', '#FF6B6B', '#FFD43B', '#6C757D'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+                </text>
+        }
+    </script>
+}
