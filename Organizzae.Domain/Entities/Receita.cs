@@ -51,7 +51,7 @@ namespace Organizzae.Domain.Entities
             CategoriaId = categoriaId;
             TipoRecorrencia = tipoRecorrencia;
 
-            AtualizarDataModificacao();
+            AtualizarDataAtualizacao();
         }
 
         public void DefinirObservacoes(string observacoes)
@@ -60,7 +60,7 @@ namespace Organizzae.Domain.Entities
                 throw new ArgumentException("Observações devem ter no máximo 500 caracteres", nameof(observacoes));
 
             Observacoes = observacoes;
-            AtualizarDataModificacao();
+            AtualizarDataAtualizacao();
         }
 
         public void RegistrarRecebimento(DateTime dataRecebimento)
@@ -76,7 +76,7 @@ namespace Organizzae.Domain.Entities
             DataRecebimento = dataRecebimento;
             Status = StatusReceita.Recebida;
 
-            AtualizarDataModificacao();
+            AtualizarDataAtualizacao();
         }
 
         public void Cancelar()
@@ -85,7 +85,7 @@ namespace Organizzae.Domain.Entities
                 throw new InvalidOperationException("Não é possível cancelar uma receita já recebida");
 
             Status = StatusReceita.Cancelada;
-            AtualizarDataModificacao();
+            AtualizarDataAtualizacao();
         }
 
         public void ReativarReceita()
@@ -94,7 +94,7 @@ namespace Organizzae.Domain.Entities
                 throw new InvalidOperationException("Somente receitas canceladas podem ser reativadas");
 
             Status = StatusReceita.Pendente;
-            AtualizarDataModificacao();
+            AtualizarDataAtualizacao();
         }
 
         /// <summary>
