@@ -20,4 +20,9 @@
     <ProjectReference Include="..\Organizzae.Infrastructure\Organizzae.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Views\Objetivos\" />
+    <Folder Include="Views\Receitas\" />
+  </ItemGroup>
+
 </Project>
