@@ -1,0 +1,123 @@
+@model Organizzae.Application.DTOs.Receita.CriarReceitaDto
+
+@{
+    ViewData["Title"] = "Nova Receita";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Cabeçalho -->
+            <div class="mb-4">
+                <h2><i class="bi bi-cash-coin text-success"></i> Nova Receita</h2>
+                <p class="text-muted">Registre um novo ganho ou receita</p>
+            </div>
+
+            <!-- Card do Formulário -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form asp-action="Criar" method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <!-- Descrição -->
+                        <div class="mb-3">
+                            <label asp-for="Descricao" class="form-label">
+                                <i class="bi bi-tag"></i> Descrição da Receita <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Descricao" class="form-control" placeholder="Ex: Salário, Freelance, Venda" />
+                            <span asp-validation-for="Descricao" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Valor e Data -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Valor" class="form-label">
+                                    <i class="bi bi-cash-stack"></i> Valor <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input asp-for="Valor" class="form-control" type="number" step="0.01" min="0.01" placeholder="0,00" />
+                                </div>
+                                <span asp-validation-for="Valor" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Data" class="form-label">
+                                    <i class="bi bi-calendar-event"></i> Data do Recebimento <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Data" class="form-control" type="date" />
+                                <span asp-validation-for="Data" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Recorrente -->
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                <input asp-for="Recorrente" class="form-check-input" type="checkbox" role="switch" />
+                                <label asp-for="Recorrente" class="form-check-label">
+                                    <i class="bi bi-arrow-repeat"></i> Esta é uma receita recorrente (mensal)
+                                </label>
+                            </div>
+                            <small class="text-muted">Marque se esta receita se repete todos os meses (ex: salário, aluguel recebido)</small>
+                        </div>
+
+                        <!-- Exemplos -->
+                        <div class="alert alert-info mb-4">
+                            <h6 class="alert-heading"><i class="bi bi-lightbulb"></i> Exemplos de Receitas</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Recorrentes:</strong>
+                                    <ul class="mb-0 small">
+                                        <li>Salário</li>
+                                        <li>Aluguel recebido</li>
+                                        <li>Pensão</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Avulsas:</strong>
+                                    <ul class="mb-0 small">
+                                        <li>Freelance</li>
+                                        <li>Venda de item</li>
+                                        <li>Prêmio/Bônus</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle"></i> Salvar Receita
+                            </button>
+                            <a asp-action="Index" class="btn btn-light">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Dicas -->
+            <div class="card border-0 bg-light mt-4">
+                <div class="card-body">
+                    <h6><i class="bi bi-info-circle text-primary"></i> Dicas Importantes</h6>
+                    <ul class="mb-0 small">
+                        <li>Registre suas receitas assim que receber para manter o controle atualizado</li>
+                        <li>Receitas recorrentes facilitam a visualização de sua renda mensal fixa</li>
+                        <li>Inclua todas as fontes de renda, mesmo as pequenas</li>
+                        <li>Use descrições claras para facilitar a identificação posterior</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Definir data de hoje por padrão
+        document.getElementById('Data').valueAsDate = new Date();
+    </script>
+}

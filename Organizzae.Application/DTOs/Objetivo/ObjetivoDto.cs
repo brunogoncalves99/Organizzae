@@ -7,6 +7,7 @@
         public string Nome { get; set; } = string.Empty;
         public string? Descricao { get; set; }
         public decimal ValorTotal { get; set; }
+        public decimal ValorAlvo { get; set; }
         public string ValorTotalFormatado { get; set; } = string.Empty;
         public decimal ValorEconomizado { get; set; }
         public string ValorEconomizadoFormatado { get; set; } = string.Empty;

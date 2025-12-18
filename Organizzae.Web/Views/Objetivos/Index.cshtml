@@ -1,0 +1,336 @@
+@model IEnumerable<Organizzae.Application.DTOs.Objetivo.ObjetivoDto>
+
+@{
+    ViewData["Title"] = "Meus Objetivos";
+}
+
+<div class="container-fluid py-4">
+    <!-- Cabeçalho -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1"><i class="bi bi-bullseye text-primary"></i> Meus Objetivos</h2>
+                    <p class="text-muted">Defina e acompanhe suas metas financeiras</p>
+                </div>
+                <a href="@Url.Action("Criar", "Objetivos")" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Novo Objetivo
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Estatísticas Rápidas -->
+    @{
+        var totalObjetivos = Model.Count();
+        var objetivosConcluidos = Model.Count(o => o.Concluido);
+        var objetivosAtivos = totalObjetivos - objetivosConcluidos;
+        var valorTotalAlvo = Model.Sum(o => o.ValorAlvo);
+        var valorTotalAtual = Model.Sum(o => o.ValorAtual);
+        var percentualGeral = valorTotalAlvo > 0 ? (valorTotalAtual / valorTotalAlvo * 100) : 0;
+    }
+
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-opacity-10 rounded p-3">
+                                <i class="bi bi-list-check text-primary fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Total de Objetivos</h6>
+                            <h4 class="mb-0">@totalObjetivos</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-opacity-10 rounded p-3">
+                                <i class="bi bi-check-circle text-success fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Concluídos</h6>
+                            <h4 class="mb-0">@objetivosConcluidos</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning bg-opacity-10 rounded p-3">
+                                <i class="bi bi-hourglass-split text-warning fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Em Andamento</h6>
+                            <h4 class="mb-0">@objetivosAtivos</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-opacity-10 rounded p-3">
+                                <i class="bi bi-graph-up text-info fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Progresso Geral</h6>
+                            <h4 class="mb-0">@percentualGeral.ToString("F1")%</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Objetivos -->
+    @if (!Model.Any())
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+                <h5 class="mt-3 text-muted">Nenhum objetivo cadastrado</h5>
+                <p class="text-muted">Comece criando seu primeiro objetivo financeiro!</p>
+                <a href="@Url.Action("Criar", "Objetivos")" class="btn btn-primary mt-2">
+                    <i class="bi bi-plus-circle"></i> Criar Primeiro Objetivo
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var objetivo in Model.OrderBy(o => o.Concluido).ThenBy(o => o.DataFim))
+            {
+                var percentual = objetivo.ValorAlvo > 0 ? (objetivo.ValorAtual / objetivo.ValorAlvo * 100) : 0;
+                var diasRestantes = objetivo.DataFim.HasValue ? (objetivo.DataFim.Value - DateTime.Now).Days : 0;
+                var corBarra = percentual >= 100 ? "bg-success" : percentual >= 75 ? "bg-info" : percentual >= 50 ? "bg-warning" : "bg-danger";
+
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card border-0 shadow-sm h-100 @(objetivo.Concluido ? "border-success border-2" : "")">
+                        <div class="card-body">
+                            <!-- Cabeçalho -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title mb-1">
+                                        @objetivo.Descricao
+                                        @if (objetivo.Concluido)
+                                        {
+                                            <span class="badge bg-success ms-2">
+                                                <i class="bi bi-check-circle"></i> Concluído
+                                            </span>
+                                        }
+                                    </h5>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="@Url.Action("Detalhes", "Objetivos", new { id = objetivo.Id })">
+                                                <i class="bi bi-eye"></i> Detalhes
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="@Url.Action("Editar", "Objetivos", new { id = objetivo.Id })">
+                                                <i class="bi bi-pencil"></i> Editar
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form asp-action="MarcarConcluido" asp-route-id="@objetivo.Id" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="dropdown-item">
+                                                    <i class="bi bi-@(objetivo.Concluido ? "arrow-counterclockwise" : "check-circle")"></i> 
+                                                    @(objetivo.Concluido ? "Reabrir" : "Marcar como Concluído")
+                                                </button>
+                                            </form>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form asp-action="Excluir" asp-route-id="@objetivo.Id" method="post" 
+                                                  onsubmit="return confirm('Tem certeza que deseja excluir este objetivo?');" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="dropdown-item text-danger">
+                                                    <i class="bi bi-trash"></i> Excluir
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Valores -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between text-muted small mb-1">
+                                    <span>Progresso</span>
+                                    <span><strong>@percentual.ToString("F1")%</strong></span>
+                                </div>
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar @corBarra" role="progressbar" 
+                                         style="width: @(Math.Min(percentual, 100))%"></div>
+                                </div>
+                            </div>
+
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="bg-light rounded p-2">
+                                        <small class="text-muted d-block">Valor Atual</small>
+                                        <strong class="text-primary">@objetivo.ValorAtual.ToString("C")</strong>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="bg-light rounded p-2">
+                                        <small class="text-muted d-block">Valor Alvo</small>
+                                        <strong class="text-success">@objetivo.ValorAlvo.ToString("C")</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Datas -->
+                            <div class="small text-muted mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span><i class="bi bi-calendar-event"></i> Início:</span>
+                                    <span>@objetivo.DataInicio.ToString("dd/MM/yyyy")</span>
+                                </div>
+                                @if (objetivo.DataFim.HasValue)
+                                {
+                                    <div class="d-flex justify-content-between">
+                                        <span><i class="bi bi-calendar-check"></i> Fim:</span>
+                                        <span>
+                                            @objetivo.DataFim.Value.ToString("dd/MM/yyyy")
+                                            @if (!objetivo.Concluido && diasRestantes >= 0)
+                                            {
+                                                <span class="badge bg-@(diasRestantes <= 7 ? "danger" : diasRestantes <= 30 ? "warning" : "info") ms-1">
+                                                    @diasRestantes dias
+                                                </span>
+                                            }
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Botão Adicionar Valor -->
+                            @if (!objetivo.Concluido)
+                            {
+                                <button type="button" class="btn btn-sm btn-primary w-100" 
+                                        data-bs-toggle="modal" data-bs-target="#modalAdicionarValor"
+                                        onclick="setObjetivoId('@objetivo.Id', '@objetivo.Descricao')">
+                                    <i class="bi bi-plus-circle"></i> Adicionar Valor
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Modal Adicionar Valor -->
+<div class="modal fade" id="modalAdicionarValor" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Adicionar Valor ao Objetivo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formAdicionarValor" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <p class="text-muted" id="modalObjetivoNome"></p>
+                    <input type="hidden" id="modalObjetivoId" name="id" />
+                    <div class="mb-3">
+                        <label for="valor" class="form-label">Valor a Adicionar</label>
+                        <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            <input type="number" class="form-control" id="valor" name="valor" 
+                                   step="0.01" min="0.01" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Adicionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function setObjetivoId(id, descricao) {
+            document.getElementById('modalObjetivoId').value = id;
+            document.getElementById('modalObjetivoNome').textContent = descricao;
+            document.getElementById('formAdicionarValor').action = '/Objetivos/AdicionarValor/' + id;
+        }
+
+        document.getElementById('formAdicionarValor').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            var form = this;
+            var formData = new FormData(form);
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('modalAdicionarValor'));
+                    modal.hide();
+                    
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('Erro: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao adicionar valor.');
+            });
+        });
+    </script>
+}

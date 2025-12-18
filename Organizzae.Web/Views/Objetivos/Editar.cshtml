@@ -1,0 +1,134 @@
+@model Organizzae.Application.DTOs.Objetivo.AtualizarObjetivoDto
+
+@{
+    ViewData["Title"] = "Editar Objetivo";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Cabeçalho -->
+            <div class="mb-4">
+                <h2><i class="bi bi-pencil text-primary"></i> Editar Objetivo</h2>
+                <p class="text-muted">Atualize as informações do objetivo</p>
+            </div>
+
+            <!-- Card do Formulário -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form asp-action="Editar" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+                        
+                        <!-- Descrição -->
+                        <div class="mb-3">
+                            <label asp-for="Descricao" class="form-label">
+                                <i class="bi bi-tag"></i> Descrição do Objetivo <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Descricao" class="form-control" />
+                            <span asp-validation-for="Descricao" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Valores -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ValorAlvo" class="form-label">
+                                    <i class="bi bi-cash-stack"></i> Valor Alvo <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input asp-for="ValorAlvo" class="form-control" type="number" step="0.01" min="0.01" />
+                                </div>
+                                <span asp-validation-for="ValorAlvo" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ValorAtual" class="form-label">
+                                    <i class="bi bi-wallet2"></i> Valor Atual
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input asp-for="ValorAtual" class="form-control" type="number" step="0.01" min="0" />
+                                </div>
+                                <span asp-validation-for="ValorAtual" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Datas -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DataInicio" class="form-label">
+                                    <i class="bi bi-calendar-event"></i> Data de Início <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="DataInicio" class="form-control" type="date" />
+                                <span asp-validation-for="DataInicio" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DataFim" class="form-label">
+                                    <i class="bi bi-calendar-check"></i> Data Alvo
+                                </label>
+                                <input asp-for="DataFim" class="form-control" type="date" />
+                                <span asp-validation-for="DataFim" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Concluido" class="form-check-input" type="checkbox" role="switch" />
+                                <label asp-for="Concluido" class="form-check-label">
+                                    <i class="bi bi-check-circle"></i> Objetivo Concluído
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Progresso Atual -->
+                        @{
+                            var percentual = Model.ValorAlvo > 0 ? (Model.ValorAtual / Model.ValorAlvo * 100) : 0;
+                            var corBarra = percentual >= 100 ? "bg-success" : percentual >= 75 ? "bg-info" : percentual >= 50 ? "bg-warning" : "bg-danger";
+                        }
+
+                        <div class="alert alert-info mb-3">
+                            <h6 class="alert-heading"><i class="bi bi-graph-up"></i> Progresso Atual</h6>
+                            <div class="progress mb-2" style="height: 20px;">
+                                <div class="progress-bar @corBarra" role="progressbar" 
+                                     style="width: @(Math.Min(percentual, 100))%">
+                                    @percentual.ToString("F1")%
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">Valor Restante:</small>
+                                    <strong>@((Model.ValorAlvo - Model.ValorAtual).ToString("C"))</strong>
+                                </div>
+                                <div class="col-md-6">
+                                    @if (Model.DataFim.HasValue)
+                                    {
+                                        var diasRestantes = (Model.DataFim.Value - DateTime.Now).Days;
+                                        <small class="text-muted d-block">Dias Restantes:</small>
+                                        <strong>@diasRestantes dias</strong>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Salvar Alterações
+                            </button>
+                            <a asp-action="Index" class="btn btn-light">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

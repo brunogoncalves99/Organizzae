@@ -1,0 +1,261 @@
+@{
+    ViewData["Title"] = "Relatório Anual de Receitas";
+    var anoAtual = ViewBag.AnoAtual ?? DateTime.Now.Year;
+    var receitasPorMes = ViewBag.ReceitasPorMes as Dictionary<int, decimal> ?? new Dictionary<int, decimal>();
+    var totalAnual = ViewBag.TotalAnual ?? 0m;
+    var meses = new[] { "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez" };
+    var mesesCompletos = new[] { "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" };
+}
+
+<div class="container-fluid py-4">
+    <!-- Cabeçalho -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1"><i class="bi bi-graph-up text-success"></i> Relatório Anual de Receitas</h2>
+                    <p class="text-muted">Visão geral das receitas do ano @anoAtual</p>
+                </div>
+                <a asp-action="Index" class="btn btn-light">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seletor de Ano -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="get" asp-action="Relatorio">
+                        <label for="ano" class="form-label">Selecionar Ano</label>
+                        <select name="ano" id="ano" class="form-select" onchange="this.form.submit()">
+                            @for (int i = DateTime.Now.Year - 5; i <= DateTime.Now.Year + 1; i++)
+                            {
+                                <option value="@i" selected="@(i == anoAtual)">@i</option>
+                            }
+                        </select>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card border-0 shadow-sm bg-success text-white">
+                <div class="card-body">
+                    <h6 class="mb-1">Total Anual de Receitas</h6>
+                    <h6 class="text-white-50 mb-2">Ano @anoAtual</h6>
+                    <h2 class="mb-0">@totalAnual.ToString("C")</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estatísticas -->
+    @{
+        var mesesComReceita = receitasPorMes.Count(kvp => kvp.Value > 0);
+        var mediaMensal = mesesComReceita > 0 ? totalAnual / mesesComReceita : 0;
+        var maiorReceita = receitasPorMes.Any() ? receitasPorMes.Max(kvp => kvp.Value) : 0;
+        var mesMaiorReceita = receitasPorMes.Any() && maiorReceita > 0 ? receitasPorMes.First(kvp => kvp.Value == maiorReceita).Key : 0;
+    }
+
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-opacity-10 rounded p-3">
+                                <i class="bi bi-calculator text-primary fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Média Mensal</h6>
+                            <h4 class="mb-0">@mediaMensal.ToString("C")</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-opacity-10 rounded p-3">
+                                <i class="bi bi-trophy text-success fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Melhor Mês</h6>
+                            <h4 class="mb-0">@(mesMaiorReceita > 0 ? meses[mesMaiorReceita - 1] : "-")</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-opacity-10 rounded p-3">
+                                <i class="bi bi-cash-stack text-info fs-4"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">Maior Receita</h6>
+                            <h4 class="mb-0">@maiorReceita.ToString("C")</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-4"><i class="bi bi-bar-chart-line"></i> Receitas Mensais</h5>
+                    <canvas id="chartReceitas" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela Detalhada -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-4"><i class="bi bi-table"></i> Receitas por Mês</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Mês</th>
+                                    <th class="text-end">Total</th>
+                                    <th class="text-center">% do Total Anual</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 1; i <= 12; i++)
+                                {
+                                    var valorMes = receitasPorMes.ContainsKey(i) ? receitasPorMes[i] : 0;
+                                    var percentualAnual = totalAnual > 0 ? (valorMes / totalAnual * 100) : 0;
+                                    var mesPassado = i < DateTime.Now.Month || anoAtual < DateTime.Now.Year;
+                                    var mesAtual = i == DateTime.Now.Month && anoAtual == DateTime.Now.Year;
+
+                                    <tr>
+                                        <td>
+                                            <strong>@mesesCompletos[i-1]</strong>
+                                            @if (mesAtual)
+                                            {
+                                                <span class="badge bg-primary ms-2">Atual</span>
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            <h5 class="mb-0 @(valorMes > 0 ? "text-success" : "text-muted")">
+                                                @valorMes.ToString("C")
+                                            </h5>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-success" role="progressbar" 
+                                                     style="width: @percentualAnual%">
+                                                    @(percentualAnual > 5 ? percentualAnual.ToString("F1") + "%" : "")
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            @if (valorMes > 0)
+                                            {
+                                                <i class="bi bi-check-circle-fill text-success fs-5" title="Com receitas"></i>
+                                            }
+                                            else if (mesPassado)
+                                            {
+                                                <i class="bi bi-x-circle-fill text-danger fs-5" title="Sem receitas"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-clock-fill text-muted fs-5" title="Aguardando"></i>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <th>TOTAL ANUAL</th>
+                                    <th class="text-end">
+                                        <h5 class="text-success mb-0">@totalAnual.ToString("C")</h5>
+                                    </th>
+                                    <th class="text-center">100%</th>
+                                    <th></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Dados do gráfico
+        const labels = @Html.Raw(Json.Serialize(meses));
+        const data = @Html.Raw(Json.Serialize(receitasPorMes.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value)));
+
+        // Configuração do gráfico
+        const ctx = document.getElementById('chartReceitas').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Receitas (R$)',
+                    data: data,
+                    backgroundColor: 'rgba(25, 135, 84, 0.8)',
+                    borderColor: 'rgba(25, 135, 84, 1)',
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'R$ ' + context.parsed.y.toFixed(2).replace('.', ',');
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'R$ ' + value.toFixed(0);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

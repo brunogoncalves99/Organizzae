@@ -1,0 +1,82 @@
+@model Organizzae.Application.DTOs.Receita.AtualizarReceitaDto
+
+@{
+    ViewData["Title"] = "Editar Receita";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Cabeçalho -->
+            <div class="mb-4">
+                <h2><i class="bi bi-pencil text-warning"></i> Editar Receita</h2>
+                <p class="text-muted">Atualize as informações da receita</p>
+            </div>
+
+            <!-- Card do Formulário -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form asp-action="Editar" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+                        
+                        <!-- Descrição -->
+                        <div class="mb-3">
+                            <label asp-for="Descricao" class="form-label">
+                                <i class="bi bi-tag"></i> Descrição da Receita <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Descricao" class="form-control" />
+                            <span asp-validation-for="Descricao" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Valor e Data -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Valor" class="form-label">
+                                    <i class="bi bi-cash-stack"></i> Valor <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input asp-for="Valor" class="form-control" type="number" step="0.01" min="0.01" />
+                                </div>
+                                <span asp-validation-for="Valor" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Data" class="form-label">
+                                    <i class="bi bi-calendar-event"></i> Data do Recebimento <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Data" class="form-control" type="date" />
+                                <span asp-validation-for="Data" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Recorrente -->
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                <input asp-for="Recorrente" class="form-check-input" type="checkbox" role="switch" />
+                                <label asp-for="Recorrente" class="form-check-label">
+                                    <i class="bi bi-arrow-repeat"></i> Esta é uma receita recorrente (mensal)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Salvar Alterações
+                            </button>
+                            <a asp-action="Index" class="btn btn-light">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
